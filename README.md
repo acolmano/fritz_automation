@@ -22,7 +22,7 @@ Integrazione custom per Home Assistant che supporta **SMS e chiamate telefoniche
 
 ## 🔧 Installazione
 
-1. **Copiare i file** in `/config/custom_components/fritzsms/`
+1. **Copiare i file** in `/config/custom_components/fritz_automation/`
 2. **Riavviare** Home Assistant
 3. **Aggiungere integrazione** da Dispositivi e Servizi > Aggiungi Integrazione
 4. **Inserire credenziali** del FRITZ!Box
@@ -36,13 +36,12 @@ Integrazione custom per Home Assistant che supporta **SMS e chiamate telefoniche
 - `sensor.fritzsms_call_status` - Stato chiamate attive
 
 ### Servizi
-- `fritzsms.get_sms` - Recupera SMS
-- `fritzsms.get_sms` - Recupera SMS
-- `fritzsms.mark_sms_read` - Marca SMS come letto
-- `fritzsms.delete_sms` - Elimina SMS
-- `fritzsms.make_call` - Effettua chiamata (modelli compatibili)
-- `fritzsms.hangup_call` - Termina chiamata
-- `fritzsms.get_calls` - Recupera cronologia chiamate
+- `fritz_automation.get_sms` - Recupera SMS
+- `fritz_automation.mark_sms_read` - Marca SMS come letto
+- `fritz_automation.delete_sms` - Elimina SMS
+- `fritz_automation.make_call` - Effettua chiamata (modelli compatibili)
+- `fritz_automation.hangup_call` - Termina chiamata
+- `fritz_automation.get_calls` - Recupera cronologia chiamate
 
 ### Esempio Automazione
 ```yaml
