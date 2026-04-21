@@ -1,0 +1,95 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Please enter the credentials for your AVM FRITZ!Box Enhanced.",
+        "data": {
+          "host": "[%key:common::config_flow::data::host%]",
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "token": "Authenticator Token (TOTP Secret)"
+        },
+        "data_description": {
+          "token": "Generated TOTP: {code}"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "config_subentries": {
+    "target": {
+      "step": {
+        "user": {
+          "title": "Add target",
+          "description": "Add SMS recipient",
+          "data": {
+            "name": "Target name",
+            "target": "Target number"
+          }
+        },
+        "reconfigure": {
+          "title": "Update target",
+          "description": "Update SMS recipient",
+          "data": {
+            "name": "Target name",
+            "target": "Target number"
+          }
+        }
+      },
+      "error": {
+        "impossible_number": "The target number is not a possible phone number"
+      },
+      "abort": {
+        "reconfigure_successful": "Update of target was successful"
+      },
+      "initiate_flow": {
+        "user": "Add SMS target",
+        "reconfigure": "Update SMS target"
+      },
+      "entry_type": "SMS target"
+    }
+  },
+  "services": {
+    "get_sms": {
+      "name": "Get SMS messages",
+      "description": "Retrieve SMS messages from FRITZ!Box",
+      "fields": {
+        "limit": {
+          "name": "Limit",
+          "description": "Maximum number of SMS messages to retrieve"
+        },
+        "unread_only": {
+          "name": "Unread only",
+          "description": "Only retrieve unread SMS messages"
+        }
+      }
+    },
+    "mark_sms_read": {
+      "name": "Mark SMS as read",
+      "description": "Mark an SMS message as read",
+      "fields": {
+        "sms_id": {
+          "name": "SMS ID",
+          "description": "ID of the SMS message to mark as read"
+        }
+      }
+    },
+    "delete_sms": {
+      "name": "Delete SMS",
+      "description": "Delete an SMS message",
+      "fields": {
+        "sms_id": {
+          "name": "SMS ID",
+          "description": "ID of the SMS message to delete"
+        }
+      }
+    }
+  }
+}

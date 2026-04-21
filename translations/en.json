@@ -1,0 +1,95 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "description": "Please enter the credentials for your AVM FRITZ!Bo.",
+                "data": {
+                    "host": "Host",
+                    "password": "Password",
+                    "username": "Username",
+                    "token": "Authenticator Token (TOTP Secret)"
+                },
+                "data_description": {
+                    "token": "Generated TOTP: {code}"
+                }
+            }
+        }
+    },
+    "config_subentries": {
+        "target": {
+            "step": {
+                "user": {
+                    "title": "Add target",
+                    "description": "Add SMS recipient",
+                    "data": {
+                        "name": "Target name",
+                        "target": "Target number"
+                    }
+                },
+                "reconfigure": {
+                    "title": "Update target",
+                    "description": "Update SMS recipient",
+                    "data": {
+                        "name": "Target name",
+                        "target": "Target number"
+                    }
+                }
+            },
+            "error": {
+                "impossible_number": "The target number is not a possible phone number"
+            },
+            "abort": {
+                "reconfigure_successful": "Update of target was successful"
+            },
+            "initiate_flow": {
+                "user": "Add SMS target",
+                "reconfigure": "Update SMS target"
+            },
+            "entry_type": "SMS target"
+        }
+    },
+    "services": {
+        "get_sms": {
+            "name": "Get SMS messages",
+            "description": "Retrieve SMS messages from FRITZ!Box",
+            "fields": {
+                "limit": {
+                    "name": "Limit",
+                    "description": "Maximum number of SMS messages to retrieve"
+                },
+                "unread_only": {
+                    "name": "Unread only",
+                    "description": "Only retrieve unread SMS messages"
+                }
+            }
+        },
+        "mark_sms_read": {
+            "name": "Mark SMS as read",
+            "description": "Mark an SMS message as read",
+            "fields": {
+                "sms_id": {
+                    "name": "SMS ID",
+                    "description": "ID of the SMS message to mark as read"
+                }
+            }
+        },
+        "delete_sms": {
+            "name": "Delete SMS",
+            "description": "Delete an SMS message",
+            "fields": {
+                "sms_id": {
+                    "name": "SMS ID",
+                    "description": "ID of the SMS message to delete"
+                }
+            }
+        }
+    }
+}

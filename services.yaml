@@ -1,0 +1,133 @@
+get_sms:
+  description: Get SMS messages from FRITZ!Box
+  fields:
+    limit:
+      description: Maximum number of SMS messages to retrieve
+      example: 10
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 100
+    unread_only:
+      description: Only retrieve unread SMS messages
+      example: false
+      default: false
+      selector:
+        boolean:
+
+mark_sms_read:
+  description: Mark an SMS message as read
+  fields:
+    sms_id:
+      description: ID of the SMS message to mark as read
+      example: "12345"
+      required: true
+      selector:
+        text:
+
+delete_sms:
+  description: Delete an SMS message
+  fields:
+    sms_id:
+      description: ID of the SMS message to delete
+      example: "12345"
+      required: true
+      selector:
+        text:
+
+delete_all_sms:
+  name: Delete all SMS
+  description: Remove all SMS
+  target:
+    device:
+      integration: fritz_automation
+
+make_call:
+  description: "Make a phone call using FRITZ!Box dial helper (requires dial helper to be enabled)"
+  fields:
+    phone_number:
+      description: Phone number to call
+      example: "+393933557372"
+      required: true
+      selector:
+        text:
+    caller_phone:
+      description: "[IGNORED] Internal phone parameter (not used by FritzCall.dial)"
+      example: "**610"
+      default: "**610"
+      required: false
+      selector:
+        text:
+    timeout:
+      description: Call timeout in seconds (for service timeout, not call duration)
+      example: 30
+      default: 30
+      selector:
+        number:
+          min: 10
+          max: 300
+
+hangup_call:
+  description: "Hang up the current dialing process (terminates any active dial operation)"
+  fields:
+    call_id:
+      description: "[IGNORED] Call ID parameter (not supported by FritzCall.hangup)"
+      example: "call_123"
+      required: false
+      selector:
+        text:
+
+debug_methods:
+  description: "[DEBUG] List all available methods on FRITZ!Box object"
+
+test_sms_event:
+  description: Test SMS event emission
+
+test_answer_detection:
+  description: "[TEST] Test call answer detection system with simulated scenarios"
+
+test_call_answered_event:
+  description: "[TEST] Test the call_answered event emission with custom data"
+  fields:
+    call_id:
+      description: Test call ID
+      example: 99999
+      default: 99999
+      selector:
+        number:
+          min: 1
+          max: 999999
+    answer_type:
+      description: Type of answer to simulate
+      example: "inbound_answered"
+      default: "inbound_answered"
+      selector:
+        select:
+          options:
+            - "inbound_answered"
+            - "inbound_missed"
+            - "inbound_rejected"
+            - "outbound_answered"
+            - "outbound_no_answer"
+    transition:
+      description: Call state transition
+      example: "9→1"
+      default: "9→1"
+      selector:
+        text:
+    caller:
+      description: Caller name for test
+      example: "Test User"
+      default: "Test User"
+      selector:
+        text:
+    caller_number:
+      description: Caller phone number for test
+      example: "+39000000000"
+      default: "+39000000000"
+      selector:
+        text:
+
+test_dynamic_monitoring:
+  description: "[TEST] Test the dynamic monitoring system and show current status"

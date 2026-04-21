@@ -1,0 +1,10 @@
+Fritz Automation
+Copyright 2026 Andrea Colmano
+
+This project is a derivative work based on hafritzsms by Marc Hörsken (mback2k).
+Original project: https://github.com/mback2k/hafritzsms
+Original license: Apache License 2.0
+
+Significant modifications have been made to the original codebase, including
+but not limited to: call management features, SMS management services,
+sensor enhancements, and structural reorganization.
