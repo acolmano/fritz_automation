@@ -1,3 +1,3 @@
-"""Constants for the AVM FRITZ!Box SMS integration."""
+"""Constants for the AVM FRITZ!Box Automation integration."""
 
 DOMAIN = "fritz_automation"

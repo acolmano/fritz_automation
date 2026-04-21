@@ -1,4 +1,4 @@
-"""Services for AVM FRITZ!Box SMS integration."""
+"""Services for AVM FRITZ!Box Automation integration."""
 
 from __future__ import annotations
 
@@ -668,7 +668,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         call_status_entity = None
         
         for entity in entities:
-            if entity.entity_id == "sensor.fritzsms_call_status":
+            if entity.entity_id == "sensor.fritz_automation_call_status":
                 call_status_entity = entity
                 break
         

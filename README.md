@@ -1,6 +1,6 @@
-# FRITZ!Box SMS & Calls Integration
+# Fritz Automation
 
-Integrazione custom per Home Assistant che supporta **SMS e chiamate telefoniche** tramite FRITZ!Box, completamente indipendente da HACS.
+Integrazione custom per Home Assistant per FRITZ!Box, completamente indipendente da HACS.
 
 ## ✨ Caratteristiche
 
@@ -17,7 +17,7 @@ Integrazione custom per Home Assistant che supporta **SMS e chiamate telefoniche
 ### 🛠️ Miglioramenti Tecnici
 - **Libreria interna**: Nessuna dipendenza esterna, completamente autosufficiente
 - **Async-safe**: Operazioni non bloccanti per l'interfaccia utente
-- **Naming consistente**: Prefisso `fritzsms_` per tutti i sensori
+- **Naming consistente**: Prefisso `fritz_automation_` per tutti i sensori
 - **Gestione errori robusta**: Fallback automatici e logging dettagliato
 
 ## 🔧 Installazione
@@ -30,10 +30,10 @@ Integrazione custom per Home Assistant che supporta **SMS e chiamate telefoniche
 ## 📊 Utilizzo
 
 ### Sensori Disponibili
-- `sensor.fritzsms_sms_count` - Numero totale SMS
-- `sensor.fritzsms_last_sms` - Dettagli ultimo SMS  
-- `sensor.fritzsms_sms_targets` - Target SMS disponibili
-- `sensor.fritzsms_call_status` - Stato chiamate attive
+- `sensor.fritz_automation_sms_count` - Numero totale SMS
+- `sensor.fritz_automation_last_sms` - Dettagli ultimo SMS  
+- `sensor.fritz_automation_sms_targets` - Target SMS disponibili
+- `sensor.fritz_automation_call_status` - Stato chiamate attive
 
 ### Servizi
 - `fritz_automation.get_sms` - Recupera SMS
@@ -49,7 +49,7 @@ automation:
   - alias: "Notifica SMS"
     trigger:
       platform: event
-      event_type: fritzsms_sms_received
+      event_type: fritz_automation_sms_received
     action:
       - service: notify.mobile_app_phone
         data:

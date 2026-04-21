@@ -1,4 +1,4 @@
-"""AVM FRITZ!Box SMS sensor platform."""
+"""AVM FRITZ!Box Automation sensor platform."""
 
 from __future__ import annotations
 
@@ -518,7 +518,7 @@ async def async_setup_entry(
     config_entry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the FRITZ!Box SMS sensors from a config entry."""
+    """Set up the FRITZ!Box Automation sensors from a config entry."""
     
 
     # --- Avvia il call monitor realtime ---
@@ -570,18 +570,18 @@ class FritzBoxSMSSensor(CoordinatorEntity, SensorEntity):
         
         # Nomi delle entità compatibili
         if description.key == "last_sms":
-            self._attr_name = "FRITZ!Box SMS Last SMS"
+            self._attr_name = "Fritz Automation Last SMS"
             # Forza l'entity_id per compatibilità
-            self.entity_id = "sensor.fritzsms_last_sms"
+            self.entity_id = "sensor.fritz_automation_last_sms"
         elif description.key == "sms_count":
-            self._attr_name = "FRITZ!Box SMS Count"
-            self.entity_id = "sensor.fritzsms_sms_count"
+            self._attr_name = "Fritz Automation SMS Count"
+            self.entity_id = "sensor.fritz_automation_sms_count"
         else:
-            self._attr_name = f"FRITZ!Box SMS {description.name}"
+            self._attr_name = f"Fritz Automation {description.name}"
             
         self._attr_device_info = dr.DeviceInfo(
             identifiers={(DOMAIN, config_entry.entry_id)},
-            name="FRITZ!Box SMS",
+            name="Fritz Automation",
             configuration_url=f"http://{config_entry.data['host']}/",
         )
 
@@ -656,14 +656,14 @@ class FritzBoxSMSTargetsSensor(SensorEntity):
         self.hass = hass
         self._config_entry = config_entry
         self._attr_unique_id = f"{config_entry.entry_id}_sms_targets"
-        self._attr_name = "FRITZ!Box SMS Targets"
+        self._attr_name = "Fritz Automation SMS Targets"
         self._attr_icon = "mdi:message-alert"
         # Mantieni la coerenza con gli altri sensori
-        self.entity_id = "sensor.fritzsms_sms_targets"
+        self.entity_id = "sensor.fritz_automation_sms_targets"
         
         self._attr_device_info = dr.DeviceInfo(
             identifiers={(DOMAIN, config_entry.entry_id)},
-            name="FRITZ!Box SMS",
+            name="Fritz Automation",
             configuration_url=f"http://{config_entry.data['host']}/",
         )
 
@@ -765,15 +765,15 @@ class FritzBoxCallStatusSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._config_entry = config_entry
-        self._attr_name = f"FRITZ!Box SMS {description.name}"
+        self._attr_name = f"Fritz Automation {description.name}"
         self._attr_unique_id = f"{config_entry.entry_id}_{description.key}"
-        self.entity_id = "sensor.fritzsms_call_status"
+        self.entity_id = "sensor.fritz_automation_call_status"
 
         self._attr_device_info = {
-            "identifiers": {(DOMAIN, "fritzsms")},
-            "name": "FRITZ!Box SMS",
+            "identifiers": {(DOMAIN, "fritz_automation")},
+            "name": "Fritz Automation",
             "manufacturer": "AVM",
-            "model": "FRITZ!Box SMS Integration",
+            "model": "Fritz Automation Integration",
         }
 
         # Stato precedente per rilevare transizioni (polling)

@@ -2,7 +2,7 @@ import asyncio
 import logging
 from aiohttp import BasicAuth
 
-"""FRITZ!Box SMS client implementation."""
+"""FRITZ!Box client implementation."""
 
 import hashlib
 import pyotp
@@ -48,7 +48,7 @@ class FritzBox:
         except Exception as ex:
             logging.error(f"FritzBox hangup exception: {ex}")
             return False
-    """FRITZ!Box SMS client."""
+    """FRITZ!Box client."""
     
     def __init__(self, host: str, session: ClientSession):
         """Initialize FRITZ!Box client.

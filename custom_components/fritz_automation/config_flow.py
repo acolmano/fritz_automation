@@ -1,4 +1,4 @@
-"""Config flow for the AVM FRITZ!Box SMS integration."""
+"""Config flow for the AVM FRITZ!Box Automation integration."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ STEP_TARGET_DATA_SCHEMA = vol.Schema(
 
 
 class FritzBoxConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for AVM FRITZ!Box SMS."""
+    """Handle a config flow for AVM FRITZ!Box Automation."""
 
     VERSION = 1
 
@@ -74,7 +74,7 @@ class FritzBoxConfigFlow(ConfigFlow, domain=DOMAIN):
                     errors[CONF_TOKEN] = "invalid_auth"
                 else:
                     return self.async_create_entry(
-                        title=f"FRITZ!Box SMS ({user_input[CONF_HOST]})", data=user_input
+                        title=f"Fritz Automation ({user_input[CONF_HOST]})", data=user_input
                     )
             except aiohttp.client_exceptions.ClientConnectorError:
                 errors[CONF_HOST] = "cannot_connect"

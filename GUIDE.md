@@ -1,28 +1,28 @@
-# Integrazione FRITZ!Box SMS & Calls
+# Fritz Automation
 
-Integrazione custom per Home Assistant che supporta sia SMS che chiamate telefoniche tramite FRITZ!Box, completamente indipendente da HACS.
+Integrazione custom per Home Assistant per FRITZ!Box, completamente indipendente da HACS.
 
 ## 🆕 Caratteristiche Principali
 
 ### Sensori Disponibili
-- **`sensor.fritzsms_sms_count`** - Conta il numero totale di SMS
-- **`sensor.fritzsms_last_sms`** - Mostra i dettagli dell'ultimo SMS ricevuto  
-- **`sensor.fritzsms_sms_targets`** - Elenca i target SMS disponibili
-- **`sensor.fritzsms_call_status`** - Stato delle chiamate attive (per modelli supportati)
+- **`sensor.fritz_automation_sms_count`** - Conta il numero totale di SMS
+- **`sensor.fritz_automation_last_sms`** - Mostra i dettagli dell'ultimo SMS ricevuto  
+- **`sensor.fritz_automation_sms_targets`** - Elenca i target SMS disponibili
+- **`sensor.fritz_automation_call_status`** - Stato delle chiamate attive (per modelli supportati)
 
 ### Servizi SMS
-- **`fritzsms.get_sms`** - Recupera gli SMS e emette evento custom
-- **`fritzsms.mark_sms_read`** - Marca un SMS come letto
-- **`fritzsms.delete_sms`** - Elimina un SMS
+- **`fritz_automation.get_sms`** - Recupera gli SMS e emette evento custom
+- **`fritz_automation.mark_sms_read`** - Marca un SMS come letto
+- **`fritz_automation.delete_sms`** - Elimina un SMS
 
 ### Servizi Chiamate (solo modelli compatibili)
-- **`fritzsms.make_call`** - Effettua una chiamata
-- **`fritzsms.hangup`** - Riaggancia la chiamata attiva
-- **`fritzsms.get_calls`** - Recupera la lista delle chiamate
+- **`fritz_automation.make_call`** - Effettua una chiamata
+- **`fritz_automation.hangup`** - Riaggancia la chiamata attiva
+- **`fritz_automation.get_calls`** - Recupera la lista delle chiamate
 
 ### Eventi Custom
-- **`fritzsms_sms_received`** - Evento emesso quando vengono recuperati SMS
-- **`fritzsms_call_event`** - Evento emesso per azioni di chiamata
+- **`fritz_automation_sms_received`** - Evento emesso quando vengono recuperati SMS
+- **`fritz_automation_call_event`** - Evento emesso per azioni di chiamata
 
 ## 🔧 Installazione
 
@@ -30,7 +30,7 @@ Integrazione custom per Home Assistant che supporta sia SMS che chiamate telefon
 
 2. **Copiare i file** nella directory custom_components:
    ```
-   /config/custom_components/fritzsms/
+   /config/custom_components/fritz_automation/
    ```
 
 3. **Riavviare Home Assistant**
@@ -38,7 +38,7 @@ Integrazione custom per Home Assistant che supporta sia SMS che chiamate telefon
 4. **Configurare l'integrazione**:
    - Andare in Impostazioni > Dispositivi e Servizi
    - Cliccare "Aggiungi Integrazione"
-   - Cercare "FRITZ!Box SMS"
+   - Cercare "Fritz Automation"
    - Inserire credenziali del FRITZ!Box
 
 ## 📊 Utilizzo dei Sensori
@@ -49,14 +49,14 @@ automation:
   - alias: "Notifica SMS Ricevuto"
     trigger:
       platform: state
-      entity_id: sensor.fritzsms_sms_count
+      entity_id: sensor.fritz_automation_sms_count
     condition:
       template: "{{ trigger.to_state.state|int > trigger.from_state.state|int }}"
     action:
       - service: notify.mobile_app_your_phone
         data:
-          message: "Nuovo SMS: {{ state_attr('sensor.fritzsms_last_sms', 'message') }}"
-          title: "SMS da {{ state_attr('sensor.fritzsms_last_sms', 'sender') }}"
+          message: "Nuovo SMS: {{ state_attr('sensor.fritz_automation_last_sms', 'message') }}"
+          title: "SMS da {{ state_attr('sensor.fritz_automation_last_sms', 'sender') }}"
 ```
 
 ## 🛠️ Utilizzo dei Servizi Custom
@@ -67,7 +67,7 @@ automation:
 script:
   get_recent_sms:
     sequence:
-      - service: fritzsms.get_sms
+      - service: fritz_automation.get_sms
         data:
           limit: 5
 ```
@@ -94,14 +94,14 @@ script:
               - condition: template
                 value_template: "{{ action == 'read' }}"
             sequence:
-              - service: fritzsms.mark_sms_read
+              - service: fritz_automation.mark_sms_read
                 data:
                   sms_id: "{{ sms_id }}"
           - conditions:
               - condition: template
                 value_template: "{{ action == 'delete' }}"
             sequence:
-              - service: fritzsms.delete_sms
+              - service: fritz_automation.delete_sms
                 data:
                   sms_id: "{{ sms_id }}"
 ```
@@ -114,7 +114,7 @@ automation:
   - alias: "Processa SMS via Evento"
     trigger:
       platform: event
-      event_type: fritzsms_sms_received
+      event_type: fritz_automation_sms_received
     action:
       - service: script.process_sms_list
         data:
@@ -153,7 +153,7 @@ script:
         "type": "server-events",
         "z": "flow_id",
         "name": "SMS Events",
-        "event_type": "fritzsms_sms_received",
+        "event_type": "fritz_automation_sms_received",
         "exposeToHomeAssistant": false,
         "outputs": 1
     },
@@ -178,7 +178,7 @@ Se restano entità con nomi vecchi, rimuovere e riaggiungere l'integrazione da D
 # configuration.yaml
 logger:
   logs:
-    custom_components.fritzsms: debug
+    custom_components.fritz_automation: debug
 ```
 
 ### Servizi di Chiamata Non Disponibili
@@ -202,7 +202,7 @@ Se i servizi di chiamata non funzionano, il vostro modello FRITZ!Box potrebbe no
 script:
   emergency_call:
     sequence:
-      - service: fritzsms.dial
+      - service: fritz_automation.dial
         data:
           number: "+39123456789"
 ```
@@ -215,12 +215,12 @@ automation:
       platform: time_pattern
       minutes: "/1"
     action:
-      - service: fritzsms.get_calls
+      - service: fritz_automation.get_calls
       - condition: template
-        value_template: "{{ state_attr('sensor.fritzsms_call_status', 'active_calls') | int > 0 }}"
+        value_template: "{{ state_attr('sensor.fritz_automation_call_status', 'active_calls') | int > 0 }}"
       - service: notify.mobile_app_phone
         data:
-          message: "Chiamata in corso: {{ states('sensor.fritzsms_call_status') }}"
+          message: "Chiamata in corso: {{ states('sensor.fritz_automation_call_status') }}"
 ```
 
 ### Riagganciare Automaticamente
@@ -228,7 +228,7 @@ automation:
 script:
   auto_hangup:
     sequence:
-      - service: fritzsms.hangup
+      - service: fritz_automation.hangup
       - service: notify.persistent_notification
         data:
           message: "Chiamata terminata automaticamente"
@@ -238,11 +238,11 @@ script:
 ### Dashboard Lovelace
 ```yaml
 type: entities
-title: "FRITZ!Box SMS & Calls"
+title: "Fritz Automation"
 entities:
-  - sensor.fritzsms_sms_count
-  - sensor.fritzsms_last_sms
-  - sensor.fritzsms_call_status
+  - sensor.fritz_automation_sms_count
+  - sensor.fritz_automation_last_sms
+  - sensor.fritz_automation_call_status
 ```
 
 ### Node-RED - Monitoraggio Eventi
@@ -250,14 +250,14 @@ entities:
 {
     "id": "sms_monitor",
     "type": "server-events", 
-    "event_type": "fritzsms_sms_received",
+    "event_type": "fritz_automation_sms_received",
     "outputs": 1
 }
 ```
 
 ## 🔄 Aggiornamenti
 
-Integrazione indipendente da HACS. Per aggiornamenti sostituire i file in `custom_components/fritzsms/` e riavviare Home Assistant.
+Integrazione indipendente da HACS. Per aggiornamenti sostituire i file in `custom_components/fritz_automation/` e riavviare Home Assistant.
 
 Per problemi o suggerimenti, controllare i log di Home Assistant con debug abilitato e documentare:
 - Versione di Home Assistant

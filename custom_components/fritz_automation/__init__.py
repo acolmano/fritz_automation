@@ -1,4 +1,4 @@
-"""The AVM FRITZ!Box SMS integration."""
+"""The AVM FRITZ!Box Automation integration."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ type FritzBoxConfigEntry = ConfigEntry[FritzBox]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: FritzBoxConfigEntry) -> bool:
-    """Set up AVM FRITZ!Box SMS from a config entry."""
+    """Set up AVM FRITZ!Box Automation from a config entry."""
 
     host = entry.data[CONF_HOST]
     session = async_get_clientsession(hass)
@@ -28,7 +28,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: FritzBoxConfigEntry) -> 
 
     await hass.config_entries.async_forward_entry_setups(entry, _PLATFORMS)
     
-    # Setup services for SMS management
+    # Setup services
     await async_setup_services(hass)
 
     return True

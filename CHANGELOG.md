@@ -5,34 +5,34 @@
 ### 🎉 Nuove Funzionalità
 - **Supporto chiamate telefoniche** tramite FritzConnection
 - **Integrazione completa SMS + Calls** in un'unica componente
-- **Libreria pyfritzsms interna** - Indipendente da HACS
+- **Libreria fritz_automation lib interna** - Indipendente da HACS
 - **Eventi custom** per automazioni avanzate
 - **Sensore call_status** per monitoraggio chiamate attive
 
 ### 🔧 Servizi Implementati
 #### SMS
-- `fritzsms.get_sms` - Recupera SMS ed emette evento
-- `fritzsms.mark_sms_read` - Marca SMS come letto
-- `fritzsms.delete_sms` - Elimina SMS
+- `fritz_automation.get_sms` - Recupera SMS ed emette evento
+- `fritz_automation.mark_sms_read` - Marca SMS come letto
+- `fritz_automation.delete_sms` - Elimina SMS
 
 #### Chiamate (modelli compatibili)
-- `fritzsms.make_call` - Effettua chiamata
-- `fritzsms.hangup_call` - Termina chiamata
+- `fritz_automation.make_call` - Effettua chiamata
+- `fritz_automation.hangup_call` - Termina chiamata
 
 ### 📊 Sensori
-- `sensor.fritzsms_sms_count` - Conteggio SMS
-- `sensor.fritzsms_last_sms` - Dettagli ultimo SMS
-- `sensor.fritzsms_sms_targets` - Target SMS disponibili  
-- `sensor.fritzsms_call_status` - Stato chiamate attive
+- `sensor.fritz_automation_sms_count` - Conteggio SMS
+- `sensor.fritz_automation_last_sms` - Dettagli ultimo SMS
+- `sensor.fritz_automation_sms_targets` - Target SMS disponibili  
+- `sensor.fritz_automation_call_status` - Stato chiamate attive
 
 ### ⚡ Eventi Custom
-- `fritzsms_sms_received` - Emesso alla ricezione SMS
-- `fritzsms_call_event` - Emesso per azioni di chiamata
+- `fritz_automation_sms_received` - Emesso alla ricezione SMS
+- `fritz_automation_call_event` - Emesso per azioni di chiamata
 
 ### 🛠️ Miglioramenti Tecnici
 - **Async-safe**: Tutte le chiamate sincrone gestite correttamente
 - **Device info unificato**: Informazioni coerenti per tutti i sensori
-- **Naming forzato**: Nomi entità stabili con prefisso `fritzsms_`
+- **Naming forzato**: Nomi entità stabili con prefisso `fritz_automation_`
 - **Gestione errori robusta**: Fallback e logging dettagliato
 - **Compatibilità mantenuta**: Automazioni esistenti continuano a funzionare
 

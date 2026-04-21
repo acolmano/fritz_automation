@@ -1,4 +1,4 @@
-"""AVM FRITZ!Box SMS platform for notify component."""
+"""AVM FRITZ!Box Automation platform for notify component."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ async def async_setup_entry(
 
 
 class FritzBoxNotifyEntity(NotifyEntity):
-    """Implement the notification service for the AVM FRITZ!Box SMS service."""
+    """Implement the notification service for the AVM FRITZ!Box Automation service."""
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:message-text"
