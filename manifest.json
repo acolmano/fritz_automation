@@ -1,6 +1,7 @@
 {
   "domain": "fritz_automation",
   "name": "Fritz Automation",
+  "icon": "mdi:router-wireless",
   "codeowners": [
     "@acolmano"
   ],
