@@ -10,7 +10,7 @@
         },
         "step": {
             "user": {
-                "description": "Please enter the credentials for your AVM FRITZ!Bo.",
+                "description": "Please enter the credentials for your AVM FRITZ!Box.",
                 "data": {
                     "host": "Host",
                     "password": "Password",

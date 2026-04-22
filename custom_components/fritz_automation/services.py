@@ -316,12 +316,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     
 
     async def async_handle_delete_all_sms(call: ServiceCall) -> None:
-        """Handler per il servizio delete_all_sms."""
-        _LOGGER.info("Servizio delete_all_sms richiamato")
+        """Handle the delete_all_sms service call."""
+        _LOGGER.info("delete_all_sms service called")
         
         entries = hass.config_entries.async_entries(DOMAIN)
         if not entries:
-            _LOGGER.error("Nessuna configurazione FRITZ!Box trovata")
+            _LOGGER.error("No FRITZ!Box configuration found")
             return
             
         config_entry = entries[0]
@@ -329,13 +329,13 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         cfg = config_entry.data
         
         try:
-            _LOGGER.info("Esecuzione login per cancellazione totale")
+            _LOGGER.info("Executing login for full deletion")
             await box.login(cfg[CONF_USERNAME], cfg[CONF_PASSWORD])
             await box.delete_all_sms()
             await box.logout()
-            _LOGGER.info("Logout completato con successo")
+            _LOGGER.info("Logout completed successfully")
         except Exception as err:
-            _LOGGER.error(f"Errore critico durante il servizio di cancellazione: {err}")
+            _LOGGER.error("Critical error during deletion service: %s", err)
             try:
                 await box.logout()
             except:
