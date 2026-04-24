@@ -1,7 +1,6 @@
 {
   "domain": "fritz_automation",
   "name": "Fritz Automation",
-  "brand": "avm",
   "icon": "mdi:router-wireless",
   "codeowners": [
     "@acolmano"
