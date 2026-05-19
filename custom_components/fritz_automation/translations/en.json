@@ -30,21 +30,34 @@
                     "title": "Add target",
                     "description": "Add SMS recipient",
                     "data": {
-                        "name": "Target name",
+                        "name": "Target name"
+                    }
+                },
+                "target": {
+                    "title": "Add target",
+                    "description": "Enter phone number for {target_name}{phone_note}",
+                    "data": {
                         "target": "Target number"
                     }
                 },
                 "reconfigure": {
                     "title": "Update target",
-                    "description": "Update SMS recipient",
+                    "description": "Update SMS recipient name",
                     "data": {
-                        "name": "Target name",
+                        "name": "Target name"
+                    }
+                },
+                "reconfigure_target": {
+                    "title": "Update target",
+                    "description": "Update phone number for {target_name}{phone_note}",
+                    "data": {
                         "target": "Target number"
                     }
                 }
             },
             "error": {
-                "impossible_number": "The target number is not a possible phone number"
+                "impossible_number": "The target number is not a possible phone number",
+                "mobile_device_info_missing": "Mobile Device Info integration (sensor.mobile_devices_info) not found"
             },
             "abort": {
                 "reconfigure_successful": "Update of target was successful"

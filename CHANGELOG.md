@@ -1,5 +1,13 @@
 # Changelog - FRITZ!Box SMS & Calls Integration
 
+## v1.2.0 (2026-05-19)
+
+### ✨ Nuove Funzionalità
+- **Lookup automatico numero di telefono** dal sensor `sensor.mobile_devices_info`: durante l'aggiunta o la modifica di un target SMS, il numero viene pre-compilato automaticamente in base al nome del device
+- **Label integrazione mancante**: se `sensor.mobile_devices_info` non è presente, viene mostrato un messaggio di errore rosso nel config flow
+- **Label nessun numero**: se il device non ha un numero associato in Mobile Device Info, viene mostrata una nota informativa
+- **Flusso di inserimento a due step**: prima si inserisce il nome del target, poi il numero viene cercato e pre-compilato (modificabile)
+
 ## v1.0.0 (2025-01-XX) - Release Finale
 
 ### 🎉 Nuove Funzionalità
