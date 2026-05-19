@@ -28,36 +28,37 @@
             "step": {
                 "user": {
                     "title": "Add target",
-                    "description": "Add SMS recipient",
+                    "description": "Select a device from Mobile Device Info",
                     "data": {
-                        "name": "Target name"
+                        "device_selector": "Device"
                     }
                 },
-                "target": {
+                "details": {
                     "title": "Add target",
-                    "description": "Enter phone number for {target_name}{phone_note}",
+                    "description": "Enter target name and phone number",
                     "data": {
+                        "name": "Target name",
                         "target": "Target number"
                     }
                 },
                 "reconfigure": {
                     "title": "Update target",
-                    "description": "Update SMS recipient name",
+                    "description": "Select a new device from Mobile Device Info or keep current",
                     "data": {
-                        "name": "Target name"
+                        "device_selector": "Device"
                     }
                 },
-                "reconfigure_target": {
+                "reconfigure_details": {
                     "title": "Update target",
-                    "description": "Update phone number for {target_name}{phone_note}",
+                    "description": "Update target name and phone number",
                     "data": {
+                        "name": "Target name",
                         "target": "Target number"
                     }
                 }
             },
             "error": {
-                "impossible_number": "The target number is not a possible phone number",
-                "mobile_device_info_missing": "Mobile Device Info integration (sensor.mobile_devices_info) not found"
+                "impossible_number": "The target number is not a possible phone number"
             },
             "abort": {
                 "reconfigure_successful": "Update of target was successful"

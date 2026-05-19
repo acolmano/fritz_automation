@@ -1,5 +1,12 @@
 # Changelog - FRITZ!Box SMS & Calls Integration
 
+## v1.2.1 (2026-05-19)
+
+### ✨ Nuove Funzionalità
+- **Selezione device da Mobile Device Info**: durante l'aggiunta o la modifica di un target SMS, è ora possibile scegliere il device da un dropdown che mostra tutti i device presenti in `sensor.mobile_devices_info` (con nome e numero di telefono)
+- **Fallback manuale**: se `sensor.mobile_devices_info` non è presente, il selector viene saltato e si procede direttamente all'inserimento manuale di nome e numero
+- **Compatibilità standalone**: l'integrazione funziona completamente anche senza Mobile Device Info
+
 ## v1.2.0 (2026-05-19)
 
 ### ✨ Nuove Funzionalità
