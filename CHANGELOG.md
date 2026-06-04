@@ -1,5 +1,17 @@
 # Changelog - FRITZ!Box SMS & Calls Integration
 
+## v1.2.2 (2026-06-04)
+
+### ✨ Nuove Funzionalità
+- **Sensore TR-064 ManufacturerName**: aggiunto `sensor.fritz_automation_manufacturer_name` tramite `DeviceInfo:1/GetInfo` (`NewManufacturerName`)
+- **Nuovi sensori WAN TR-064** per analisi connessione:
+	- `sensor.fritz_automation_connection_type`
+	- `sensor.fritz_automation_access_technology`
+	- `sensor.fritz_automation_dsl_link_state`
+	- `sensor.fritz_automation_lte_link_state`
+	- `sensor.fritz_automation_wan_failover_active`
+- **Rilevazione best-effort DSL/LTE** con fallback su più servizi TR-064 (`WANCommonInterfaceConfig`, `WANDSLInterfaceConfig`, `Layer3Forwarding`, servizi mobile AVM)
+
 ## v1.2.1 (2026-05-19)
 
 ### ✨ Nuove Funzionalità

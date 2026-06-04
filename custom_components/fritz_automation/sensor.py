@@ -35,6 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=2)
 CALL_SCAN_INTERVAL_NORMAL = timedelta(seconds=30)  # Intervallo normale per le chiamate
 CALL_SCAN_INTERVAL_ACTIVE = timedelta(seconds=5)   # Intervallo durante chiamate attive
+WAN_SCAN_INTERVAL = timedelta(minutes=1)
 
 CALL_MONITOR_AFTER_SECONDS = 5                    # Continua monitoraggio rapido per 60 sec dopo fine chiamata
 
@@ -297,6 +298,36 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         name="Call Status",
         icon="mdi:phone",
     ),
+    SensorEntityDescription(
+        key="manufacturer_name",
+        name="Manufacturer Name",
+        icon="mdi:factory",
+    ),
+    SensorEntityDescription(
+        key="connection_type",
+        name="Connection Type",
+        icon="mdi:web",
+    ),
+    SensorEntityDescription(
+        key="access_technology",
+        name="Access Technology",
+        icon="mdi:network-outline",
+    ),
+    SensorEntityDescription(
+        key="dsl_link_state",
+        name="DSL Link State",
+        icon="mdi:lan",
+    ),
+    SensorEntityDescription(
+        key="lte_link_state",
+        name="LTE Link State",
+        icon="mdi:signal",
+    ),
+    SensorEntityDescription(
+        key="wan_failover_active",
+        name="WAN Failover Active",
+        icon="mdi:swap-horizontal",
+    ),
 )
 
 
@@ -367,6 +398,147 @@ def _get_calls_status_sync(fritz_conn: FritzConnection) -> dict:
             "last_call": None,
             "call_history": []
         }
+
+
+def _get_device_info_sync(fritz_conn: FritzConnection) -> dict:
+    """Get TR-064 device info synchronously."""
+    try:
+        info = fritz_conn.call_action("DeviceInfo:1", "GetInfo")
+    except Exception as err:
+        _LOGGER.error("Error getting TR-064 DeviceInfo: %s", err, exc_info=True)
+        return {
+            "manufacturer_name": None,
+            "device_info_raw": {},
+        }
+
+    return {
+        "manufacturer_name": info.get("NewManufacturerName"),
+        "device_info_raw": info,
+    }
+
+
+def _extract_first_value(data: dict, keys: list[str]) -> Any:
+    """Return the first non-empty value from a dict using candidate keys."""
+    for key in keys:
+        value = data.get(key)
+        if value not in (None, "", " "):
+            return value
+    return None
+
+
+def _normalize_link_state(value: Any) -> str:
+    """Normalize link state value to up/down/unknown."""
+    if value is None:
+        return "unknown"
+    text = str(value).strip().lower()
+    if text in {"up", "connected", "active", "established", "1", "true"}:
+        return "up"
+    if text in {"down", "disconnected", "inactive", "0", "false"}:
+        return "down"
+    return "unknown"
+
+
+def _safe_call_action(fritz_conn: FritzConnection, service: str, action: str) -> dict | None:
+    """Safely call a TR-064 action and return the response or None."""
+    try:
+        response = fritz_conn.call_action(service, action)
+        if isinstance(response, dict):
+            return response
+    except Exception:
+        return None
+    return None
+
+
+def _get_wan_info_sync(fritz_conn: FritzConnection) -> dict:
+    """Get WAN information via TR-064 with graceful fallbacks."""
+    common_link = _safe_call_action(
+        fritz_conn,
+        "WANCommonInterfaceConfig:1",
+        "GetCommonLinkProperties",
+    ) or {}
+    dsl_info = _safe_call_action(fritz_conn, "WANDSLInterfaceConfig:1", "GetInfo") or {}
+    default_connection = _safe_call_action(
+        fritz_conn,
+        "Layer3Forwarding:1",
+        "GetDefaultConnectionService",
+    ) or {}
+
+    mobile_info = {}
+    for service, action in (
+        ("X_AVM-DE_MobileConnection:1", "GetInfo"),
+        ("X_AVM-DE_MobileConnection:1", "GetMobileConnection"),
+        ("WANMobileConnection:1", "GetInfo"),
+    ):
+        mobile_info = _safe_call_action(fritz_conn, service, action) or {}
+        if mobile_info:
+            break
+
+    wan_access_type = _extract_first_value(common_link, ["NewWANAccessType"]) or "unknown"
+    dsl_state_raw = _extract_first_value(
+        dsl_info,
+        ["NewStatus", "NewLinkStatus", "NewX_AVM-DE_DSLStatus"],
+    )
+    mobile_state_raw = _extract_first_value(
+        mobile_info,
+        ["NewStatus", "NewEnable", "NewConnectionStatus", "NewLinkStatus"],
+    )
+
+    dsl_link_state = _normalize_link_state(dsl_state_raw)
+    lte_link_state = _normalize_link_state(mobile_state_raw)
+
+    combined_text = " ".join(
+        str(v).lower()
+        for v in [
+            wan_access_type,
+            _extract_first_value(dsl_info, ["NewX_AVM-DE_Standard", "NewModulationType"]) or "",
+            _extract_first_value(default_connection, ["NewDefaultConnectionService"]) or "",
+            _extract_first_value(mobile_info, ["NewAccessTechnology", "NewTechnology"]) or "",
+        ]
+    )
+
+    connection_type = "unknown"
+    if "lte" in combined_text or lte_link_state == "up" or "mobile" in combined_text:
+        connection_type = "lte"
+    elif "vdsl" in combined_text:
+        connection_type = "vdsl"
+    elif "adsl" in combined_text:
+        connection_type = "adsl"
+    elif dsl_link_state == "up" or "dsl" in combined_text:
+        connection_type = "dsl"
+
+    if connection_type == "lte" and dsl_link_state == "up":
+        wan_failover_active = "on"
+    elif connection_type in {"adsl", "vdsl", "dsl"}:
+        wan_failover_active = "off"
+    else:
+        wan_failover_active = "unknown"
+
+    downstream_raw = _extract_first_value(common_link, ["NewLayer1DownstreamMaxBitRate"]) or 0
+    upstream_raw = _extract_first_value(common_link, ["NewLayer1UpstreamMaxBitRate"]) or 0
+    try:
+        downstream_mbps = round(int(downstream_raw) / 1_000_000, 2)
+    except Exception:
+        downstream_mbps = None
+    try:
+        upstream_mbps = round(int(upstream_raw) / 1_000_000, 2)
+    except Exception:
+        upstream_mbps = None
+
+    return {
+        "connection_type": connection_type,
+        "access_technology": str(wan_access_type).lower(),
+        "dsl_link_state": dsl_link_state,
+        "lte_link_state": lte_link_state,
+        "wan_failover_active": wan_failover_active,
+        "downstream_mbps": downstream_mbps,
+        "upstream_mbps": upstream_mbps,
+        "wan_raw": {
+            "common_link": common_link,
+            "dsl_info": dsl_info,
+            "mobile_info": mobile_info,
+            "default_connection": default_connection,
+        },
+    }
 
 
 class FritzBoxSMSUpdateCoordinator(DataUpdateCoordinator):
@@ -513,6 +685,74 @@ class FritzBoxCallUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Error communicating with FRITZ!Box: {err}") from err
 
 
+class FritzBoxDeviceInfoUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching TR-064 device info from FRITZ!Box."""
+
+    def __init__(self, hass: HomeAssistant, config_entry) -> None:
+        """Initialize the device info coordinator."""
+        self.config_entry = config_entry
+        self._fritz_conn = None
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=f"{DOMAIN}_device_info",
+            update_interval=timedelta(hours=1),
+        )
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch TR-064 device info from FRITZ!Box."""
+        try:
+            if self._fritz_conn is None:
+                self._fritz_conn = await self.hass.async_add_executor_job(
+                    _create_fritz_connection_for_calls,
+                    self.config_entry.data[CONF_HOST],
+                    self.config_entry.data[CONF_USERNAME],
+                    self.config_entry.data[CONF_PASSWORD],
+                )
+
+            return await self.hass.async_add_executor_job(
+                _get_device_info_sync,
+                self._fritz_conn,
+            )
+        except Exception as err:
+            self._fritz_conn = None
+            raise UpdateFailed(f"Error communicating with FRITZ!Box device info: {err}") from err
+
+
+class FritzBoxWanInfoUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching WAN info from FRITZ!Box via TR-064."""
+
+    def __init__(self, hass: HomeAssistant, config_entry) -> None:
+        """Initialize the WAN info coordinator."""
+        self.config_entry = config_entry
+        self._fritz_conn = None
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=f"{DOMAIN}_wan_info",
+            update_interval=WAN_SCAN_INTERVAL,
+        )
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch WAN info from FRITZ!Box via TR-064."""
+        try:
+            if self._fritz_conn is None:
+                self._fritz_conn = await self.hass.async_add_executor_job(
+                    _create_fritz_connection_for_calls,
+                    self.config_entry.data[CONF_HOST],
+                    self.config_entry.data[CONF_USERNAME],
+                    self.config_entry.data[CONF_PASSWORD],
+                )
+
+            return await self.hass.async_add_executor_job(
+                _get_wan_info_sync,
+                self._fritz_conn,
+            )
+        except Exception as err:
+            self._fritz_conn = None
+            raise UpdateFailed(f"Error communicating with FRITZ!Box WAN info: {err}") from err
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry,
@@ -538,6 +778,14 @@ async def async_setup_entry(
     call_coordinator = FritzBoxCallUpdateCoordinator(hass, config_entry)
     await call_coordinator.async_config_entry_first_refresh()
 
+    # Coordinatore per info dispositivo (TR-064 DeviceInfo:GetInfo)
+    device_info_coordinator = FritzBoxDeviceInfoUpdateCoordinator(hass, config_entry)
+    await device_info_coordinator.async_config_entry_first_refresh()
+
+    # Coordinatore per info WAN (TR-064)
+    wan_info_coordinator = FritzBoxWanInfoUpdateCoordinator(hass, config_entry)
+    await wan_info_coordinator.async_config_entry_first_refresh()
+
     entities = []
 
     # Crea i sensori SMS e chiamate
@@ -549,6 +797,16 @@ async def async_setup_entry(
         elif description.key == "call_status":
             # Passa anche il manager realtime al sensore chiamate
             entities.append(FritzBoxCallStatusSensor(call_coordinator, config_entry, description, realtime_manager=realtime_callmonitor_manager))
+        elif description.key == "manufacturer_name":
+            entities.append(FritzBoxDeviceInfoSensor(device_info_coordinator, config_entry, description))
+        elif description.key in {
+            "connection_type",
+            "access_technology",
+            "dsl_link_state",
+            "lte_link_state",
+            "wan_failover_active",
+        }:
+            entities.append(FritzBoxWanInfoSensor(wan_info_coordinator, config_entry, description))
 
     async_add_entities(entities)
 
@@ -1014,3 +1272,89 @@ class FritzBoxCallStatusSensor(CoordinatorEntity, SensorEntity):
         attrs["answer_detection_enabled"] = True
         attrs["last_updated"] = datetime.now().isoformat()
         return attrs
+
+
+class FritzBoxDeviceInfoSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a FRITZ!Box TR-064 device info sensor."""
+
+    def __init__(
+        self,
+        coordinator: FritzBoxDeviceInfoUpdateCoordinator,
+        config_entry,
+        description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._config_entry = config_entry
+        self._attr_unique_id = f"{config_entry.entry_id}_{description.key}"
+        self._attr_name = "Fritz Automation Manufacturer Name"
+        self.entity_id = "sensor.fritz_automation_manufacturer_name"
+
+        self._attr_device_info = dr.DeviceInfo(
+            identifiers={(DOMAIN, config_entry.entry_id)},
+            name="Fritz Automation",
+            configuration_url=f"http://{config_entry.data['host']}/",
+        )
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the manufacturer name reported by TR-064 DeviceInfo:GetInfo."""
+        if not self.coordinator.data:
+            return None
+        return self.coordinator.data.get("manufacturer_name")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return additional state attributes."""
+        if not self.coordinator.data:
+            return None
+        return {
+            "source": "TR-064 DeviceInfo:1/GetInfo",
+            "raw": self.coordinator.data.get("device_info_raw", {}),
+            "last_updated": datetime.now().isoformat(),
+        }
+
+
+class FritzBoxWanInfoSensor(CoordinatorEntity, SensorEntity):
+    """Representation of a FRITZ!Box WAN info sensor."""
+
+    def __init__(
+        self,
+        coordinator: FritzBoxWanInfoUpdateCoordinator,
+        config_entry,
+        description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the WAN sensor."""
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._config_entry = config_entry
+        self._attr_unique_id = f"{config_entry.entry_id}_{description.key}"
+        self._attr_name = f"Fritz Automation {description.name}"
+        self.entity_id = f"sensor.fritz_automation_{description.key}"
+
+        self._attr_device_info = dr.DeviceInfo(
+            identifiers={(DOMAIN, config_entry.entry_id)},
+            name="Fritz Automation",
+            configuration_url=f"http://{config_entry.data['host']}/",
+        )
+
+    @property
+    def native_value(self) -> str | None:
+        """Return WAN sensor value."""
+        if not self.coordinator.data:
+            return None
+        return self.coordinator.data.get(self.entity_description.key)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return additional WAN attributes."""
+        if not self.coordinator.data:
+            return None
+        return {
+            "downstream_mbps": self.coordinator.data.get("downstream_mbps"),
+            "upstream_mbps": self.coordinator.data.get("upstream_mbps"),
+            "source": "TR-064 WANCommonInterfaceConfig:1/GetCommonLinkProperties",
+            "raw": self.coordinator.data.get("wan_raw", {}),
+            "last_updated": datetime.now().isoformat(),
+        }
