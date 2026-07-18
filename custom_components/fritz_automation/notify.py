@@ -70,6 +70,9 @@ class FritzBoxNotifyEntity(NotifyEntity):
 
         uid = await box.send_sms(sub[CONF_TARGET], message)
         if uid:
-            await box.delete_sms(uid)
+            try:
+                await box.delete_sms(uid)
+            except Exception as err:
+                _LOGGER.warning("Procedura di svuotamento outbox fallita per UID %s (SMS multi-part o lock SIM): %s", uid, err)
 
         await box.logout()
