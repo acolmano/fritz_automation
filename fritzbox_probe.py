@@ -135,41 +135,48 @@ def determine_active_connection(wan_info: dict[str, Any]) -> dict[str, str]:
     mobile_state = str(mobile_state_raw).strip().lower() if mobile_state_raw is not None else ""
     access_technology_raw = str(mobile_access_tech).strip().lower() if mobile_access_tech is not None else ""
 
-    connection_type = "unknown"
-    if (
+    dsl_is_active = dsl_state in {"up", "active", "established", "connected", "ok", "true", "1"}
+    lte_is_active = (
         "lte" in combined_text
         or "mobile" in combined_text
         or access_technology_raw == "lte"
         or mobile_state in {"up", "active", "established", "connected", "ok", "true", "1"}
-    ):
+    )
+
+    connection_type = "unknown"
+    if dsl_is_active:
+        if "vdsl" in combined_text:
+            connection_type = "vdsl"
+        elif "adsl" in combined_text:
+            connection_type = "adsl"
+        else:
+            connection_type = "dsl"
+    elif lte_is_active:
         connection_type = "lte"
     elif "vdsl" in combined_text:
         connection_type = "vdsl"
     elif "adsl" in combined_text:
         connection_type = "adsl"
-    elif (
-        dsl_state in {"up", "active", "established", "connected", "ok", "true", "1"}
-        or "dsl" in combined_text
-    ):
+    elif "dsl" in combined_text:
         connection_type = "dsl"
 
     wan_failover_active = "unknown"
-    if connection_type == "lte" and dsl_state in {"up", "active", "established", "connected", "ok", "true", "1"}:
+    if connection_type == "lte" and dsl_is_active:
         wan_failover_active = "on"
     elif connection_type in {"adsl", "vdsl", "dsl"}:
         wan_failover_active = "off"
 
     access_technology = "unknown"
-    if access_technology_raw:
+    if connection_type == "vdsl":
+        access_technology = "vdsl"
+    elif connection_type == "adsl":
+        access_technology = "adsl"
+    elif connection_type == "dsl":
+        access_technology = "dsl"
+    elif access_technology_raw:
         access_technology = access_technology_raw
     elif "lte" in combined_text or "mobile" in combined_text:
         access_technology = "lte"
-    elif "vdsl" in combined_text:
-        access_technology = "vdsl"
-    elif "adsl" in combined_text:
-        access_technology = "adsl"
-    elif "dsl" in combined_text:
-        access_technology = "dsl"
     else:
         access_technology = str(wan_access_type).lower()
 

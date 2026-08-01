@@ -506,19 +506,29 @@ def _get_wan_info_sync(fritz_conn: FritzConnection) -> dict:
         ]
     )
 
-    connection_type = "unknown"
-    if (
+    dsl_is_active = dsl_link_state == "up"
+    lte_is_active = (
         "lte" in combined_text
         or str(mobile_access_tech).lower() == "lte"
         or lte_link_state == "up"
         or "mobile" in combined_text
-    ):
+    )
+
+    connection_type = "unknown"
+    if dsl_is_active:
+        if "vdsl" in combined_text:
+            connection_type = "vdsl"
+        elif "adsl" in combined_text:
+            connection_type = "adsl"
+        else:
+            connection_type = "dsl"
+    elif lte_is_active:
         connection_type = "lte"
     elif "vdsl" in combined_text:
         connection_type = "vdsl"
     elif "adsl" in combined_text:
         connection_type = "adsl"
-    elif dsl_link_state == "up" or "dsl" in combined_text:
+    elif "dsl" in combined_text:
         connection_type = "dsl"
 
     if connection_type == "lte":
@@ -528,7 +538,16 @@ def _get_wan_info_sync(fritz_conn: FritzConnection) -> dict:
     else:
         wan_failover_active = "unknown"
 
-    access_technology = str(mobile_access_tech).lower() if mobile_access_tech else str(wan_access_type).lower()
+    if connection_type == "vdsl":
+        access_technology = "vdsl"
+    elif connection_type == "adsl":
+        access_technology = "adsl"
+    elif connection_type == "dsl":
+        access_technology = "dsl"
+    elif mobile_access_tech:
+        access_technology = str(mobile_access_tech).lower()
+    else:
+        access_technology = str(wan_access_type).lower()
 
     downstream_raw = _extract_first_value(common_link, ["NewLayer1DownstreamMaxBitRate"]) or 0
     upstream_raw = _extract_first_value(common_link, ["NewLayer1UpstreamMaxBitRate"]) or 0
