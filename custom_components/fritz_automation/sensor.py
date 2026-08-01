@@ -463,15 +463,21 @@ def _get_wan_info_sync(fritz_conn: FritzConnection) -> dict:
         "GetDefaultConnectionService",
     ) or {}
 
-    mobile_info = {}
-    for service, action in (
-        ("X_AVM-DE_MobileConnection:1", "GetInfo"),
-        ("X_AVM-DE_MobileConnection:1", "GetMobileConnection"),
-        ("WANMobileConnection:1", "GetInfo"),
+    mobile_info: dict[str, dict[str, Any]] = {}
+    for action in (
+        "GetInfo",
+        "GetInfoEx",
+        "GetAccessTechnology",
     ):
-        mobile_info = _safe_call_action(fritz_conn, service, action) or {}
-        if mobile_info:
-            break
+        mobile_info[action] = _safe_call_action(
+            fritz_conn,
+            "X_AVM-DE_WANMobileConnection:1",
+            action,
+        ) or {}
+
+    mobile_info_combined: dict[str, Any] = {}
+    for action in ("GetInfo", "GetInfoEx", "GetAccessTechnology"):
+        mobile_info_combined.update(mobile_info.get(action, {}) or {})
 
     wan_access_type = _extract_first_value(common_link, ["NewWANAccessType"]) or "unknown"
     dsl_state_raw = _extract_first_value(
@@ -479,8 +485,12 @@ def _get_wan_info_sync(fritz_conn: FritzConnection) -> dict:
         ["NewStatus", "NewLinkStatus", "NewX_AVM-DE_DSLStatus"],
     )
     mobile_state_raw = _extract_first_value(
-        mobile_info,
+        mobile_info_combined,
         ["NewStatus", "NewEnable", "NewConnectionStatus", "NewLinkStatus"],
+    )
+    mobile_access_tech = _extract_first_value(
+        mobile_info_combined,
+        ["NewCurrentAccessTechnology", "NewAccessTechnology", "NewTechnology"],
     )
 
     dsl_link_state = _normalize_link_state(dsl_state_raw)
@@ -492,12 +502,17 @@ def _get_wan_info_sync(fritz_conn: FritzConnection) -> dict:
             wan_access_type,
             _extract_first_value(dsl_info, ["NewX_AVM-DE_Standard", "NewModulationType"]) or "",
             _extract_first_value(default_connection, ["NewDefaultConnectionService"]) or "",
-            _extract_first_value(mobile_info, ["NewAccessTechnology", "NewTechnology"]) or "",
+            str(mobile_access_tech).lower() or "",
         ]
     )
 
     connection_type = "unknown"
-    if "lte" in combined_text or lte_link_state == "up" or "mobile" in combined_text:
+    if (
+        "lte" in combined_text
+        or str(mobile_access_tech).lower() == "lte"
+        or lte_link_state == "up"
+        or "mobile" in combined_text
+    ):
         connection_type = "lte"
     elif "vdsl" in combined_text:
         connection_type = "vdsl"
@@ -506,12 +521,14 @@ def _get_wan_info_sync(fritz_conn: FritzConnection) -> dict:
     elif dsl_link_state == "up" or "dsl" in combined_text:
         connection_type = "dsl"
 
-    if connection_type == "lte" and dsl_link_state == "up":
+    if connection_type == "lte":
         wan_failover_active = "on"
     elif connection_type in {"adsl", "vdsl", "dsl"}:
         wan_failover_active = "off"
     else:
         wan_failover_active = "unknown"
+
+    access_technology = str(mobile_access_tech).lower() if mobile_access_tech else str(wan_access_type).lower()
 
     downstream_raw = _extract_first_value(common_link, ["NewLayer1DownstreamMaxBitRate"]) or 0
     upstream_raw = _extract_first_value(common_link, ["NewLayer1UpstreamMaxBitRate"]) or 0
