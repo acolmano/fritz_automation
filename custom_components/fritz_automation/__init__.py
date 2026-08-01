@@ -11,7 +11,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .services import async_setup_services, async_unload_services
 
-_PLATFORMS: list[Platform] = [Platform.NOTIFY, Platform.SENSOR]
+_PLATFORMS: list[Platform] = [Platform.NOTIFY, Platform.SENSOR, Platform.BINARY_SENSOR]
 
 type FritzBoxConfigEntry = ConfigEntry[FritzBox]
 

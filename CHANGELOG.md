@@ -1,5 +1,12 @@
 # Changelog - FRITZ!Box SMS & Calls Integration
 
+## v1.2.7 (2026-08-01)
+
+### ✨ Nuove Funzionalità
+- **Binary sensor disponibilità internet**: aggiunto `binary_sensor.fritz_automation_internet_connection_active` per segnalare se almeno un collegamento DSL/LTE è attivo
+- **Informazioni WAN estese**: il coordinatore WAN espone ora anche lo stato `internet_connection_active` per supportare automazioni semplici e diagnostica
+- **Aggiornamento documentazione**: README e changelog riflettono il nuovo sensore e il comportamento di disponibilità internet
+
 ## v1.2.2 (2026-06-04)
 
 ### ✨ Nuove Funzionalità

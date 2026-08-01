@@ -560,12 +560,15 @@ def _get_wan_info_sync(fritz_conn: FritzConnection) -> dict:
     except Exception:
         upstream_mbps = None
 
+    internet_connection_active = dsl_link_state == "up" or lte_link_state == "up"
+
     return {
         "connection_type": connection_type,
         "access_technology": str(wan_access_type).lower(),
         "dsl_link_state": dsl_link_state,
         "lte_link_state": lte_link_state,
         "wan_failover_active": wan_failover_active,
+        "internet_connection_active": internet_connection_active,
         "downstream_mbps": downstream_mbps,
         "upstream_mbps": upstream_mbps,
         "wan_raw": {
@@ -821,6 +824,7 @@ async def async_setup_entry(
     # Coordinatore per info WAN (TR-064)
     wan_info_coordinator = FritzBoxWanInfoUpdateCoordinator(hass, config_entry)
     await wan_info_coordinator.async_config_entry_first_refresh()
+    setattr(config_entry.runtime_data, "wan_info_coordinator", wan_info_coordinator)
 
     entities = []
 

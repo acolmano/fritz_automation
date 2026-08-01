@@ -19,6 +19,7 @@ Integrazione custom per Home Assistant per FRITZ!Box, completamente indipendente
 - **Async-safe**: Operazioni non bloccanti per l'interfaccia utente
 - **Naming consistente**: Prefisso `fritz_automation_` per tutti i sensori
 - **Gestione errori robusta**: Fallback automatici e logging dettagliato
+- **Rilevamento disponibilità internet**: Nuovo binary sensor per indicare se almeno un collegamento DSL/LTE è attivo
 
 ## 🔧 Installazione
 
@@ -34,6 +35,9 @@ Integrazione custom per Home Assistant per FRITZ!Box, completamente indipendente
 - `sensor.fritz_automation_last_sms` - Dettagli ultimo SMS  
 - `sensor.fritz_automation_sms_targets` - Target SMS disponibili
 - `sensor.fritz_automation_call_status` - Stato chiamate attive
+- `binary_sensor.fritz_automation_internet_connection_active` - Indica se è disponibile almeno un collegamento internet attivo
+- `sensor.fritz_automation_connection_type` - Tipo di connessione WAN rilevato
+- `sensor.fritz_automation_access_technology` - Tecnologia di accesso rilevata
 
 ### Servizi
 - `fritz_automation.get_sms` - Recupera SMS
