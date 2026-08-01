@@ -1,6 +1,6 @@
 {
   "name": "Fritz Automation",
   "render_readme": true,
-  "tag": "v1.2.3",
+  "tag": "v1.2.4",
   "homeassistant": "2024.1.0"
 }
