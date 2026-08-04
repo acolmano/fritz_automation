@@ -27,11 +27,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.selector import (
-    SelectOptionDict,
-    SelectSelector,
-    SelectSelectorConfig,
-)
 
 from .const import DOMAIN
 
@@ -45,9 +40,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_TOKEN): str,
     }
 )
-
-_MANUAL = "__manual__"
-
 
 class FritzBoxConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for AVM FRITZ!Box Automation."""
@@ -107,61 +99,12 @@ class FritzBoxConfigFlow(ConfigFlow, domain=DOMAIN):
 class TargetSubentryFlowHandler(ConfigSubentryFlow):
     """Handle subentry flow for adding and modifying a location."""
 
-    def _get_mobile_devices(self) -> list[dict] | None:
-        """Return devices from sensor.mobile_devices_info, or None if unavailable."""
-        state = self.hass.states.get("sensor.mobile_devices_info")
-        if state is None:
-            return None
-        return state.attributes.get("devices", [])
-
-    def _build_selector_schema(self, devices: list[dict]) -> vol.Schema:
-        """Build device dropdown schema from MDI device list."""
-        options: list[SelectOptionDict] = [
-            {"value": _MANUAL, "label": "Inserisci manualmente"},
-        ]
-        for device in devices:
-            name = device.get("name") or ""
-            if not name:
-                continue
-            phone = device.get("phone_number") or ""
-            label = f"{name} ({phone})" if phone else name
-            options.append({"value": name, "label": label})
-        return vol.Schema(
-            {vol.Required("device_selector"): SelectSelector(SelectSelectorConfig(options=options))}
-        )
-
-    # ── ADD FLOW ──────────────────────────────────────────────────────────────
+    # ── ADD FLOW (manual only) ───────────────────────────────────────────────
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> SubentryFlowResult:
-        """Step 1 (add): select device from MDI, or skip to manual entry."""
-        devices = self._get_mobile_devices()
-
-        if devices is None:
-            # MDI not available – go straight to manual entry
-            return await self.async_step_details()
-
-        if user_input is not None:
-            selected = user_input["device_selector"]
-            if selected == _MANUAL:
-                self._prefill: dict[str, str] = {}
-            else:
-                matched = next((d for d in devices if d.get("name") == selected), None)
-                self._prefill = {CONF_NAME: selected}
-                if matched and matched.get("phone_number"):
-                    self._prefill[CONF_TARGET] = matched["phone_number"]
-            return await self.async_step_details()
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=self._build_selector_schema(devices),
-        )
-
-    async def async_step_details(
-        self, user_input: dict[str, Any] | None = None
-    ) -> SubentryFlowResult:
-        """Step 2 (add): enter / confirm target name and phone number."""
+        """Step 1 (add): manually enter target name and phone number."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -175,54 +118,21 @@ class TargetSubentryFlowHandler(ConfigSubentryFlow):
                     data=user_input,
                 )
 
-        fill_data = user_input if user_input is not None else getattr(self, "_prefill", {})
-
-        schema = vol.Schema({vol.Required(CONF_NAME): str, vol.Required(CONF_TARGET): str})
-        if fill_data:
-            schema = self.add_suggested_values_to_schema(schema, fill_data)
-
         return self.async_show_form(
-            step_id="details",
-            data_schema=schema,
+            step_id="user",
+            data_schema=self.add_suggested_values_to_schema(
+                vol.Schema({vol.Required(CONF_NAME): str, vol.Required(CONF_TARGET): str}),
+                user_input or {},
+            ),
             errors=errors,
         )
 
-    # ── RECONFIGURE FLOW ──────────────────────────────────────────────────────
+    # ── RECONFIGURE FLOW (manual only) ───────────────────────────────────────
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> SubentryFlowResult:
-        """Reconfigure step 1: select new device from MDI or keep current."""
-        devices = self._get_mobile_devices()
-
-        if devices is None:
-            # MDI not available – go straight to details with existing values
-            return await self.async_step_reconfigure_details()
-
-        if user_input is not None:
-            selected = user_input["device_selector"]
-            config_subentry = self._get_reconfigure_subentry()
-            if selected == _MANUAL:
-                self._prefill = {
-                    CONF_NAME: config_subentry.data.get(CONF_NAME, ""),
-                    CONF_TARGET: config_subentry.data.get(CONF_TARGET, ""),
-                }
-            else:
-                matched = next((d for d in devices if d.get("name") == selected), None)
-                self._prefill = {CONF_NAME: selected}
-                if matched and matched.get("phone_number"):
-                    self._prefill[CONF_TARGET] = matched["phone_number"]
-            return await self.async_step_reconfigure_details()
-
-        return self.async_show_form(
-            step_id="reconfigure",
-            data_schema=self._build_selector_schema(devices),
-        )
-
-    async def async_step_reconfigure_details(
-        self, user_input: dict[str, Any] | None = None
-    ) -> SubentryFlowResult:
-        """Reconfigure step 2: update target name and phone number."""
+        """Reconfigure step: manually update target name and phone number."""
         config_entry = self._get_entry()
         config_subentry = self._get_reconfigure_subentry()
         errors: dict[str, str] = {}
@@ -240,17 +150,10 @@ class TargetSubentryFlowHandler(ConfigSubentryFlow):
                     data_updates=user_input,
                 )
 
-        if user_input is not None:
-            fill_data = user_input
-        else:
-            fill_data = getattr(
-                self,
-                "_prefill",
-                {
-                    CONF_NAME: config_subentry.data.get(CONF_NAME, ""),
-                    CONF_TARGET: config_subentry.data.get(CONF_TARGET, ""),
-                },
-            )
+        fill_data = user_input or {
+            CONF_NAME: config_subentry.data.get(CONF_NAME, ""),
+            CONF_TARGET: config_subentry.data.get(CONF_TARGET, ""),
+        }
 
         schema = self.add_suggested_values_to_schema(
             vol.Schema({vol.Required(CONF_NAME): str, vol.Required(CONF_TARGET): str}),
@@ -258,7 +161,7 @@ class TargetSubentryFlowHandler(ConfigSubentryFlow):
         )
 
         return self.async_show_form(
-            step_id="reconfigure_details",
+            step_id="reconfigure",
             data_schema=schema,
             errors=errors,
         )

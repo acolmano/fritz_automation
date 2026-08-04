@@ -28,9 +28,10 @@
             "step": {
                 "user": {
                     "title": "Add target",
-                    "description": "Select a device from Mobile Device Info",
+                    "description": "Enter target name and phone number",
                     "data": {
-                        "device_selector": "Device"
+                        "name": "Target name",
+                        "target": "Target number"
                     }
                 },
                 "details": {
@@ -43,9 +44,10 @@
                 },
                 "reconfigure": {
                     "title": "Update target",
-                    "description": "Select a new device from Mobile Device Info or keep current",
+                    "description": "Update target name and phone number",
                     "data": {
-                        "device_selector": "Device"
+                        "name": "Target name",
+                        "target": "Target number"
                     }
                 },
                 "reconfigure_details": {

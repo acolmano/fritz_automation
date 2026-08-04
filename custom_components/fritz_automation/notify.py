@@ -45,7 +45,9 @@ async def async_setup_entry(
 class FritzBoxNotifyEntity(NotifyEntity):
     """Implement the notification service for the AVM FRITZ!Box Automation service."""
 
-    _attr_has_entity_name = True
+    # Keep the notify entity name standalone to avoid duplicated object IDs
+    # like notify.<target>_<target> when device name and entity name match.
+    _attr_has_entity_name = False
     _attr_icon = "mdi:message-text"
 
     def __init__(self, entry: FritzBoxConfigEntry, subentry: ConfigSubentry) -> None:

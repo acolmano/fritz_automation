@@ -1,5 +1,12 @@
 # Changelog - FRITZ!Box SMS & Calls Integration
 
+## v1.2.8 (2026-08-04)
+
+### 🔧 Correzioni
+- **Flow target SMS manual-only**: rimossa la dipendenza da Mobile Device Info nel config subentry; aggiunta e modifica target ora richiedono solo inserimento manuale di nome e numero
+- **Naming entità notify corretto**: evitata la duplicazione nel nome entità (`notify.nome_nome`) mantenendo il nome target una sola volta
+- **Traduzioni aggiornate**: testi UI allineati al nuovo flusso manuale per add/reconfigure target
+
 ## v1.2.7 (2026-08-01)
 
 ### ✨ Nuove Funzionalità
